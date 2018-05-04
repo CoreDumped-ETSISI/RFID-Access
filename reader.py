@@ -30,7 +30,7 @@ def end_read(signal,frame):
 def BLOCK():
     time.sleep(30)
 
-# When this has been called 5 times in 30 sec, calls BLOCK()
+# When this has been called max_denies times in max_time secs, calls BLOCK()
 def TIMER():
     global timer
     global time_list
@@ -56,26 +56,26 @@ def TIMER():
             times_denied -= 1
 
 
-signal.signal(signal.SIGINT, end_read)
+signal.signal(signal.SIGINT, end_read) # This calls end_read when the program capture Ctrl+C
 while sentinel:
     continue_reading = True
     abrir_puerta = False
-    MIFAREReader = MFRC522.MFRC522()
+    MIFAREReader = MFRC522.MFRC522() # We create an object which drives the hardware
     GPIO.output(7, True)
     while continue_reading:
-        if abrir_puerta:
-            print("Puerta Abierta")
+        if abrir_puerta: # here we choose active the GPIO 7 when the tag's card is registered
             GPIO.output(7, False)
             time.sleep(2)
             GPIO.output(7, True)
             abrir_puerta = False
             continue_reading = False
-        (detected,TagType) = MIFAREReader.MFRC522_Request(MIFAREReader.PICC_REQIDL)
-        (status,uid) = MIFAREReader.MFRC522_Anticoll()
+        (detected,TagType) = MIFAREReader.MFRC522_Request(MIFAREReader.PICC_REQIDL) # This scan for new cards
+        (status,uid) = MIFAREReader.MFRC522_Anticoll() # This takes the uid card as a list called uid
         if detected == MIFAREReader.MI_OK:
             print("Card detected")
         if status == MIFAREReader.MI_OK:
+            print(uid)
             if True:    # TODO: here we should call a database authenticator and not True
-                abrir_puerta = True
+                abrir_puerta = True # if the card is registered, we can active the GPIO 7 on the next loop travel
             else:
                 TIMER()
