@@ -2,8 +2,8 @@ import RPi.GPIO as GPIO
 import MFRC522
 import signal
 import hashlib
-from google_calc_connector import get_users_json
-from google_calc_connector import insert_user
+from google_api_connector import get_users_json
+from google_api_connector import insert_user
 
 continue_reading = True
 codebook = get_users_json()
@@ -48,7 +48,9 @@ def new_user():
                     phone = raw_input("Phone: ")
                     telegram_nick = raw_input("Telegram nick: ")
                     insert_user(hash_uid, "PENDIENTE",  name, email, phone, telegram_nick)
-                    codebook = get_users_json
+                    codebook = get_users_json()
+                else:
+                    print("Tag already exists")
                 continue_reading = False
                 GPIO.cleanup()
 
@@ -60,7 +62,7 @@ def show_users():
         print(key + " -> " + dt["name"])
         print("     - Email: " + dt["email"])
         print("     - Phone: " + dt["phone"])
-        print("     - Telegram user" + dt["telegram_user"])
+        print("     - Telegram user: " + dt["telegram_user"])
         print("     - Status: " + dt["status"] + "\n")
 
 
