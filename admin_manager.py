@@ -1,8 +1,12 @@
 import RPi.GPIO as GPIO
 import MFRC522
 import signal
+import hashlib
+from google_calc_connector import get_users_json
+from google_calc_connector import insert_user
 
 continue_reading = True
+codebook = get_users_json()
 
 # Capture SIGINT for cleanup when the script is aborted
 def end_read(signal, frame):
@@ -11,9 +15,13 @@ def end_read(signal, frame):
     continue_reading = False
     GPIO.cleanup()
 
+def hasher(str):
+    return hashlib.md5(str).hexdigest()
+
 # in this action the RFID reader waits for a card, which if don't exist in the database, will be added on it
 def new_user():
     global continue_reading
+    global codebook
     # Hook the SIGINT
     signal.signal(signal.SIGINT, end_read)
     # Create an object of the class MFRC522
@@ -33,19 +41,27 @@ def new_user():
             (status, uid) = MIFAREReader.MFRC522_Anticoll()
             # If we have the UID, continue
             if status == MIFAREReader.MI_OK:
-                pass    # TODO: here we should check if the captured uid already exist in the database and add it
+                hash_uid = hasher(''.join(str(e) for e in uid))
+                if not (hash_uid in codebook):
+                    name = raw_input("Name: ")
+                    email = raw_input("Email: ")
+                    phone = raw_input("Phone: ")
+                    telegram_nick = raw_input("Telegram nick: ")
+                    insert_user(hash_uid, "PENDIENTE",  name, email, phone, telegram_nick)
+                    codebook = get_users_json
+                continue_reading = False
+                GPIO.cleanup()
+
 
 # this action prints a list of all the users
 def show_users():
-    pass    # TODO: print a list of all the users
-
-# this action erases the target user fro the database
-def delete_user():
-    pass    # TODO: erase the target user fro the database
-
-# this action shows the personal data of target user
-def user_data():
-    pass    # TODO: show the personal data of target user
+    global codebook
+    for key, dt in codebook.items():
+        print(key + " -> " + dt["name"])
+        print("     - Email: " + dt["email"])
+        print("     - Phone: " + dt["phone"])
+        print("     - Telegram user" + dt["telegram_user"])
+        print("     - Status: " + dt["status"] + "\n")
 
 
 def default():
@@ -57,11 +73,9 @@ def main():
     sentinel = True
     d_actions = {
         1: new_user,
-        2: show_users,
-        3: delete_user,
-        4: user_data,
+        2: show_users
     }
-    actions_list = ["New user", "Show users", "Delete user", "User data"]
+    actions_list = ["New user", "Show users"]
     while sentinel:
         for x in list(d_actions):
             print(x, actions_list[x-1])
