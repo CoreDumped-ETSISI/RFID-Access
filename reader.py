@@ -39,17 +39,26 @@ def brute_force_avoid():
     global start_timer
     global max_denied
     global max_time
-    print("NOPE")
     if times_denied > 0:
         end_timer = time.time()
         times_between_denieds_list = times_between_denieds_list + [end_timer - start_timer]
         main_timer = main_timer + (end_timer - start_timer)
     start_timer = time.time()
     times_denied += 1
-    time.sleep(1)
+    # A double blink-LED in denied case
+    GPIO.output(31, True)
+    time.sleep(0.5)
+    GPIO.output(31, False)
+    time.sleep(0.2)
+    GPIO.output(31, True)
+    time.sleep(0.5)
+    GPIO.output(31, False)
     if times_denied == max_denied:
         if main_timer <= max_time:
+            #
+            GPIO.output(31, True)
             time.sleep(blocked_time)
+            GPIO.output(31, False)
             main_timer = 0
             times_denied = 0
             times_between_denieds_list = [0]
@@ -64,13 +73,15 @@ def get_codebook():
     return book
 
 def hasher(str):
-    return hashlib.sha256(str).hexdigest()
+    return hashlib.md5(str).hexdigest()
 
 def open_door():
     print("OPEN ...")
+    GPIO.output(31, True)
     GPIO.output(7, False)
-    time.sleep(2)
+    time.sleep(4)
     GPIO.output(7, True)
+    GPIO.output(31, False)
 
 
 signal.signal(signal.SIGINT, end_read) # This calls end_read when the program capture Ctrl+C
