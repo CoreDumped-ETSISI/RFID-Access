@@ -6,6 +6,7 @@ from google_api_connector import get_users_json
 from google_api_connector import insert_user
 import json
 
+
 # Capture SIGINT for cleanup when the script is aborted
 def end_read(signal, frame):
     global continue_reading
@@ -13,9 +14,11 @@ def end_read(signal, frame):
     continue_reading = False
     GPIO.cleanup()
 
+
 # This returns hashed str
 def hasher(str):
-    return hashlib.md5(str).hexdigest()
+    return hashlib.sha256(str).hexdigest()
+
 
 # This return the users data from local or remote database
 def get_codebook():
@@ -27,8 +30,10 @@ def get_codebook():
             codebook = json.load(code_json)
     return codebook
 
+
 continue_reading = True
 codebook = get_codebook()
+
 
 # in this action the RFID reader waits for a card, which if don't exist in the database, will be added on it
 def new_user():
@@ -59,12 +64,13 @@ def new_user():
                     email = raw_input("Email: ")
                     phone = raw_input("Phone: ")
                     telegram_nick = raw_input("Telegram nick: ")
-                    insert_user(hash_uid, "PENDIENTE",  name, email, phone, telegram_nick)
+                    insert_user(hash_uid, "PENDIENTE", name, email, phone, telegram_nick)
                     codebook = get_codebook()
                 else:
                     print("Tag already exists")
                 continue_reading = False
                 GPIO.cleanup()
+
 
 # this action prints a list of all the users
 def show_users():
@@ -91,11 +97,11 @@ def main():
     actions_list = ["New user", "Show users"]
     while sentinel:
         for x in list(d_actions):
-            print(x, actions_list[x-1])
+            print(x, actions_list[x - 1])
         print(0, "Exit")
         sec = int(input("Select: "))
         if sec != 0:
-            d_actions.get(sec,default)()
+            d_actions.get(sec, default)()
         else:
             sentinel = False
 
