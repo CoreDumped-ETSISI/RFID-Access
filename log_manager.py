@@ -20,7 +20,10 @@ def write_json_file(log_data):
 
 # new_log_entry creates a new entry in the log.json file
 def new_log_entry(uid_hashed="xxx", username="unknown", action="not especified"):
-    log_data = read_json_file()
+    try:
+        log_data = read_json_file()
+    except:
+        log_data = {}
     timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%d/%m/%Y %H:%M:%S')
     log_data[timestamp] = {"uid_hashed": uid_hashed, "username": username, "action": action}
     write_json_file(log_data)

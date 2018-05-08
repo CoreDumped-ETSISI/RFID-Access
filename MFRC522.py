@@ -112,6 +112,7 @@ class MFRC522:
     GPIO.setmode(GPIO.BOARD)
     GPIO.setup(22, GPIO.OUT)
     GPIO.setup(7, GPIO.OUT)
+    GPIO.setup(31, GPIO.OUT)
     GPIO.output(self.NRSTPD, 1)
     self.MFRC522_Init()
 
