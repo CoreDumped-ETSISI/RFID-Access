@@ -3,6 +3,7 @@
 
 import json
 from google_api_connector import insert_user
+from google_api_connector import get_users_json
 
 
 def read_users_file():
@@ -22,3 +23,12 @@ def new_user_entry(uid_hashed, status="NONE", name="NONE", email="NONE", phone="
                               "telegram_name": telegram_name, }
     insert_user(uid_hashed, status, name, email, phone, telegram_name)
     write_users_file(users_data)
+
+
+# This return the users data from local or remote database
+def get_user_dictionary():
+    try:
+        users_dictionary = get_users_json()
+    except:
+        users_dictionary = read_users_file()
+    return users_dictionary

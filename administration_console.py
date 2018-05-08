@@ -2,9 +2,8 @@ import RPi.GPIO as GPIO
 import MFRC522
 import signal
 import hashlib
-from google_api_connector import get_users_json
-from google_api_connector import insert_user
-import json
+import user_manager as users
+from user_manager import get_user_dictionary
 
 
 # Capture SIGINT for cleanup when the script is aborted
@@ -20,25 +19,14 @@ def hasher(string):
     return hashlib.sha256(string).hexdigest()
 
 
-# This return the users data from local or remote database
-def get_codebook():
-    global codebook
-    try:
-        codebook = get_users_json()
-    except:
-        with "users.json" as code_json:
-            codebook = json.load(code_json)
-    return codebook
-
-
 continue_reading = True
-codebook = get_codebook()
+users_dictionary = get_user_dictionary()
 
 
 # in this action the RFID reader waits for a card, which if don't exist in the database, will be added on it
 def new_user():
     global continue_reading
-    global codebook
+    global users_dictionary
     # Hook the SIGINT
     signal.signal(signal.SIGINT, end_read)
     # Create an object of the class MFRC522
@@ -59,13 +47,13 @@ def new_user():
             # If we have the UID, continue
             if status == MIFAREReader.MI_OK:
                 hash_uid = hasher(''.join(str(e) for e in uid))
-                if not (hash_uid in codebook):
+                if not (hash_uid in users_dictionary):
                     name = raw_input("Name: ")
                     email = raw_input("Email: ")
                     phone = raw_input("Phone: ")
                     telegram_name = raw_input("Telegram nick: ")
-                    insert_user(hash_uid, "PENDIENTE", name, email, phone, telegram_name)
-                    codebook = get_codebook()
+                    users.new_user_entry(hash_uid, "AUTORIZADO", name, email, phone, telegram_name)
+                    users_dictionary = get_user_dictionary()
                 else:
                     print("Tag already exists")
                 continue_reading = False
@@ -74,8 +62,8 @@ def new_user():
 
 # this action prints a list of all the users
 def show_users():
-    global codebook
-    for key, dt in codebook.items():
+    global users_dictionary
+    for key, dt in users_dictionary.items():
         print(key + " -> " + dt["name"])
         print("     - Email: " + dt["email"])
         print("     - Phone: " + dt["phone"])
