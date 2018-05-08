@@ -63,8 +63,8 @@ def new_user():
                     name = raw_input("Name: ")
                     email = raw_input("Email: ")
                     phone = raw_input("Phone: ")
-                    telegram_nick = raw_input("Telegram nick: ")
-                    insert_user(hash_uid, "PENDIENTE", name, email, phone, telegram_nick)
+                    telegram_name = raw_input("Telegram nick: ")
+                    insert_user(hash_uid, "PENDIENTE", name, email, phone, telegram_name)
                     codebook = get_codebook()
                 else:
                     print("Tag already exists")
