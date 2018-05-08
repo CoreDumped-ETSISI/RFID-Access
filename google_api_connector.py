@@ -117,6 +117,8 @@ def save_log():
             ).execute()
         os.remove('log.json')
         return True
+    except IOError:
+        print("Ninguna actividad que guardar")
     except:
         print("ERROR Al actualizar el log online\nDetalles: " + traceback.format_exc())
         return False

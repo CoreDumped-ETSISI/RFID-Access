@@ -119,10 +119,10 @@ while reset_reader_sentinel:
         if status == MIFAREReader.MI_OK:
             hashed_uid = hasher(''.join(str(e) for e in uid))
             print(hashed_uid)
+            continue_reading = False
             if is_user_authorized(hashed_uid):  # Usuario autorizado
                 open_door()
                 new_log_entry(hashed_uid, users_data[hashed_uid]["name"], "Acceso autorizado, puerta abierta")
-                continue_reading = False
             elif is_user_denied(hashed_uid):  # Usuario vetado
                 new_log_entry(hashed_uid, users_data[hashed_uid]["name"], "Usuario vetado, puerta cerrada")
             else:
