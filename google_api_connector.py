@@ -97,17 +97,17 @@ def save_log():
             data = []
             for timestamp in log_data:
                 data.append([timestamp,
-                             timestamp.get("uid_hashed"),
-                             timestamp.get("name"),
-                             timestamp.get("action")
+                             log_data.get(timestamp)["uid_hashed"],
+                             log_data.get(timestamp)["username"],
+                             log_data.get(timestamp)["action"]
                              ])
             resource = {
                 "majorDimension": "ROWS",
                 "values": data
             }
-            sheet_range = "log!A1:D"
+            sheet_range = "log!A:D"
             google_api.spreadsheets().values().append(
-                spreadsheetId=users_spreadsheet_id,
+                spreadsheetId=log_spreadsheet_id,
                 range=sheet_range,
                 body=resource,
                 valueInputOption="RAW"
