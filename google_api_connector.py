@@ -68,7 +68,6 @@ def get_users_json():
         spreadsheetId=users_spreadsheet_id,
         range="usuarios!A:F"
     ).execute()
-    print(result)
     for user in result["values"]:
         uid_hashed = user[0]
         status = user[1]
