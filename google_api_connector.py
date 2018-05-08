@@ -68,7 +68,7 @@ def get_users_json():
     users_data = {}
     result = google_api.spreadsheets().values().get(
         spreadsheetId=users_spreadsheet_id,
-        range="usuarios!A:F"
+        range="usuarios!A2:F"
     ).execute()
     for user in result["values"]:
         uid_hashed = user[0]
