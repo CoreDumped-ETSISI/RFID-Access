@@ -4,9 +4,7 @@ import signal
 import hashlib
 from google_api_connector import get_users_json
 from google_api_connector import insert_user
-
-continue_reading = True
-codebook = get_users_json()
+import json
 
 # Capture SIGINT for cleanup when the script is aborted
 def end_read(signal, frame):
@@ -15,8 +13,22 @@ def end_read(signal, frame):
     continue_reading = False
     GPIO.cleanup()
 
+# This returns hashed str
 def hasher(str):
     return hashlib.md5(str).hexdigest()
+
+# This return the users data from local or remote database
+def get_codebook():
+    global codebook
+    try:
+        codebook = get_users_json()
+    except:
+        with "users.json" as code_json:
+            codebook = json.load(code_json)
+    return codebook
+
+continue_reading = True
+codebook = get_codebook()
 
 # in this action the RFID reader waits for a card, which if don't exist in the database, will be added on it
 def new_user():
@@ -48,12 +60,11 @@ def new_user():
                     phone = raw_input("Phone: ")
                     telegram_nick = raw_input("Telegram nick: ")
                     insert_user(hash_uid, "PENDIENTE",  name, email, phone, telegram_nick)
-                    codebook = get_users_json()
+                    codebook = get_codebook()
                 else:
                     print("Tag already exists")
                 continue_reading = False
                 GPIO.cleanup()
-
 
 # this action prints a list of all the users
 def show_users():
