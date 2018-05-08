@@ -1,9 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
-#
-"""Google API connector
- developed for the Access System for Core Dumped
- """
 import json
 import os
 import sys
@@ -127,7 +123,5 @@ def save_log():
 
 
 if __name__ == '__main__':
-    # TODO: --update_log
     if "--update_log" in sys.argv:
         save_log()
-        print('Todo OK')
