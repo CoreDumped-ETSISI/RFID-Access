@@ -1,9 +1,10 @@
-import pickle
-import time
 import RPi.GPIO as GPIO
 import MFRC522
 import signal
 import hashlib
+from google_api_connector import get_users_json
+from google_api_connector import insert_user
+import json
 
 
 # Capture SIGINT for cleanup when the script is aborted
@@ -13,83 +14,97 @@ def end_read(signal, frame):
     continue_reading = False
     GPIO.cleanup()
 
-# This read the File where the dictionary with pickle library
-def getCodeBook():
+
+# This returns hashed str
+def hasher(string):
+    return hashlib.sha256(string).hexdigest()
+
+
+# This return the users data from local or remote database
+def get_codebook():
+    global codebook
     try:
-        FILE = open("Codigos.json", "r")
-        book = pickle.load(FILE)
-        FILE.close()
+        codebook = get_users_json()
     except:
-        book
-    return book
-
-# This hash the sring parameter
-def hashing(strUID):
-    return hashlib.md5(strUID).hexdigest()
-
-# This check if the hashed-UID is registered on the dictionary
-def checkUID(book, hash_uid):
-    if hash_uid in book:
-        return True
-    else:
-        return False
+        with "users.json" as code_json:
+            codebook = json.load(code_json)
+    return codebook
 
 
+continue_reading = True
+codebook = get_codebook()
 
-code_book = getCodeBook()
-choose = True
-while choose != 0:
-    choose = input("1.New user\n"
-                   "2.List of users\n"
-                   "3.Log\n"
-                   "4.Delete user\n"
-                   "0.Exit\n\n"
-                   "Option: ")
-    if choose == 1:
-        # Hook the SIGINT
-        signal.signal(signal.SIGINT, end_read)
-        # Create an object of the class MFRC522
-        MIFAREReader = MFRC522.MFRC522()
-        # Welcome message
-        print("Introduce tu tag")
-        print("Press Ctrl-C to stop.")
-        # This loop keeps checking for chips. If one is near it will get the UID and authenticate
-        continue_reading = True
-        while continue_reading:
-            # Scan for cards
-            (status, TagType) = MIFAREReader.MFRC522_Request(MIFAREReader.PICC_REQIDL)
-            # If a card is found
+
+# in this action the RFID reader waits for a card, which if don't exist in the database, will be added on it
+def new_user():
+    global continue_reading
+    global codebook
+    # Hook the SIGINT
+    signal.signal(signal.SIGINT, end_read)
+    # Create an object of the class MFRC522
+    MIFAREReader = MFRC522.MFRC522()
+    # Welcome message
+    print("Introduce tu tag")
+    print("Press Ctrl-C to stop.")
+    # This loop keeps checking for chips. If one is near it will get the UID
+    continue_reading = True
+    while continue_reading:
+        # Scan for cards
+        (status, TagType) = MIFAREReader.MFRC522_Request(MIFAREReader.PICC_REQIDL)
+        # If a card is found
+        if status == MIFAREReader.MI_OK:
+            print("Card detected")
+            # Get the UID of the card
+            (status, uid) = MIFAREReader.MFRC522_Anticoll()
+            # If we have the UID, continue
             if status == MIFAREReader.MI_OK:
-                print("Card detected")
-                # Get the UID of the card
-                (status, uid) = MIFAREReader.MFRC522_Anticoll()
-                # If we have the UID, continue
-                if status == MIFAREReader.MI_OK:
-                    str_uid = ''.join(str(e) for e in str(uid))
-                    hash_uid = hashing(str_uid)
-                    if checkUID(code_book,hash_uid):
-                        code_book[hash_uid] = {"name": raw_input("Name: "),
-                                               "nextname": raw_input("Nextname: "),
-                                               "mobile": raw_input("Mobile number: "),
-                                               "mail": raw_input("Mail : ")}
-                        print("Done")
-                    else:
-                        print("The tag already exists")
-                    continue_reading = False
-                    GPIO.cleanup()
+                hash_uid = hasher(''.join(str(e) for e in uid))
+                if not (hash_uid in codebook):
+                    name = raw_input("Name: ")
+                    email = raw_input("Email: ")
+                    phone = raw_input("Phone: ")
+                    telegram_nick = raw_input("Telegram nick: ")
+                    insert_user(hash_uid, "PENDIENTE", name, email, phone, telegram_nick)
+                    codebook = get_codebook()
+                else:
+                    print("Tag already exists")
+                continue_reading = False
+                GPIO.cleanup()
 
-    elif choose == 2:
-        i = 0
-        for none, y in code_book.items():
-            print("\n")
-            i = i + 1
-            print("-> " + y)
-        print("\n")
-    elif choose == 3:
-        pass
-    elif choose == 4:
-        pass
-    elif choose == 0:
-        print("\n\nFinished\n\n")
-    else:
-        print("\nPlease, choose a valid option\n")
+
+# this action prints a list of all the users
+def show_users():
+    global codebook
+    for key, dt in codebook.items():
+        print(key + " -> " + dt["name"])
+        print("     - Email: " + dt["email"])
+        print("     - Phone: " + dt["phone"])
+        print("     - Telegram user: " + dt["telegram_user"])
+        print("     - Status: " + dt["status"] + "\n")
+
+
+def default():
+    print("\nPlease choose a correct option\n")
+    pass
+
+
+def main():
+    sentinel = True
+    d_actions = {
+        1: new_user,
+        2: show_users
+    }
+    actions_list = ["New user", "Show users"]
+    while sentinel:
+        for x in list(d_actions):
+            print(x, actions_list[x - 1])
+        print(0, "Exit")
+        sec = int(input("Select: "))
+        if sec != 0:
+            d_actions.get(sec, default)()
+        else:
+            sentinel = False
+
+
+if __name__ == "__main__":
+    main()
