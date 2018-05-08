@@ -16,8 +16,8 @@ def end_read(signal, frame):
 
 
 # This returns hashed str
-def hasher(str):
-    return hashlib.sha256(str).hexdigest()
+def hasher(string):
+    return hashlib.sha256(string).hexdigest()
 
 
 # This return the users data from local or remote database
