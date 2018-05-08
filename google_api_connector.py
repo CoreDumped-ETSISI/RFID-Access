@@ -1,9 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
-#
-"""Google API connector
- developed for the Access System for Core Dumped
- """
 import json
 import os
 import sys
@@ -13,20 +9,24 @@ from apiclient.discovery import build
 from httplib2 import Http
 from oauth2client import file, client, tools
 
+
 # Setup the Sheets API
 # Checks for credentials.json to set a connection to Google API,
 # if doesn't exsists tries to create a new one with de data available in client_secret.json
-print("Connecting to google sheets...")
-SCOPES = 'https://www.googleapis.com/auth/spreadsheets'
-store = file.Storage('credentials.json')
-creds = store.get()
-if not creds or creds.invalid:
-    flow = client.flow_from_clientsecrets('client_secret.json', SCOPES)
-    creds = tools.run_flow(flow, store)
-google_api = build('sheets', 'v4', http=creds.authorize(Http()))
+def connect_to_google_api():
+    print("Connecting to google sheets...")
+    scopes = 'https://www.googleapis.com/auth/spreadsheets'
+    store = file.Storage('credentials.json')
+    creds = store.get()
+    if not creds or creds.invalid:
+        flow = client.flow_from_clientsecrets('client_secret.json', scopes)
+        creds = tools.run_flow(flow, store)
+    google_api = build('sheets', 'v4', http=creds.authorize(Http()))
+    print("Connection successful")
+    return google_api
 
-# Spreadsheets ids
 
+#  Spreadsheets IDS
 #  USERS TABLE
 # | uid_hashed | status | name | email | telegram_name |
 users_spreadsheet_id = '1tpHH2elJiTqIe3Dav4Hzjqab3Rs137OjOKd9W0oNxr8'
@@ -40,6 +40,7 @@ log_spreadsheet_id = '1ISaxhpRb2POD-7LvGGSdrpCnZQmTw-p17DOtXoRZKNg'
 # and appends a new user.
 # RETURNS True on success
 def insert_user(uid_hashed, status="NONE", name="NONE", email="NONE", phone="NONE", telegram_name="NONE"):
+    google_api = connect_to_google_api()
     try:
         data = [[uid_hashed, status, name, email, phone, telegram_name]]
         resource = {
@@ -63,12 +64,12 @@ def insert_user(uid_hashed, status="NONE", name="NONE", email="NONE", phone="NON
 # and claims the list of users and their data,
 # then generates a json file and returns the resulting dictionary
 def get_users_json():
+    google_api = connect_to_google_api()
     users_data = {}
     result = google_api.spreadsheets().values().get(
         spreadsheetId=users_spreadsheet_id,
         range="usuarios!A:F"
     ).execute()
-    print(result)
     for user in result["values"]:
         uid_hashed = user[0]
         status = user[1]
@@ -92,6 +93,7 @@ def get_users_json():
 # and appends the log spreadsheet
 # RETURNS True on success
 def save_log():
+    google_api = connect_to_google_api()
     try:
         with open('log.json') as log_json_file:
             log_data = json.load(log_json_file)
@@ -121,7 +123,5 @@ def save_log():
 
 
 if __name__ == '__main__':
-    # TODO: --update_log
     if "--update_log" in sys.argv:
         save_log()
-        print('Todo OK')
