@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import traceback
+
 import telepot
 
 vip_chat_id = 1001104852034
@@ -12,15 +14,27 @@ bot = telepot.Bot(token["Telegram"])
 
 
 def user_opened_message(name):
-    bot.sendMessage(vip_chat_id, name + " ha habierto el local.")
+    try:
+        bot.sendMessage(vip_chat_id, name + " ha habierto el local.")
+    except:
+        print("ERROR Al mandar el mensaje\nDetalles: " + traceback.format_exc())
+        return False
 
 
 def user_banned_message(name):
-    bot.sendMessage(vip_chat_id, name + " ha intentado abrir el local.")
+    try:
+        bot.sendMessage(vip_chat_id, name + " ha intentado abrir el local.")
+    except:
+        print("ERROR Al mandar el mensaje\nDetalles: " + traceback.format_exc())
+        return False
 
 
 def open_trial_message(hashed_uid):
-    bot.sendMessage(vip_chat_id,
-                    "Alguien con hash terminado en "
-                    + str(hashed_uid)[-8:]
-                    + "ha intentado abrir el local.")
+    try:
+        bot.sendMessage(vip_chat_id,
+                        "Alguien con hash terminado en "
+                        + str(hashed_uid)[-8:]
+                        + "ha intentado abrir el local.")
+    except:
+        print("ERROR Al mandar el mensaje\nDetalles: " + traceback.format_exc())
+        return False
