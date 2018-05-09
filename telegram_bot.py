@@ -4,7 +4,7 @@ import traceback
 
 import telepot
 
-vip_chat_id = 1001104852034
+vip_chat_id = -1001088278003
 
 token = {}
 tokenfile = open("credenciales.txt", "r")

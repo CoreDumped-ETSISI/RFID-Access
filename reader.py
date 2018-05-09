@@ -38,13 +38,11 @@ def end_read(signal, frame):
 
 
 def led_denial_blink():
-    GPIO.output(31, True)
-    time.sleep(0.3)
-    GPIO.output(31, False)
-    time.sleep(0.2)
-    GPIO.output(31, True)
-    time.sleep(0.3)
-    GPIO.output(31, False)
+    for _ in (0, 3):
+        GPIO.output(31, True)
+        time.sleep(0.1)
+        GPIO.output(31, False)
+        time.sleep(0.1)
 
 
 # When this has been called max_denies times in max_time secs, calls BLOCK()
@@ -86,7 +84,7 @@ def open_door():
     print("OPEN ...")
     GPIO.output(31, True)
     GPIO.output(7, False)
-    time.sleep(4)
+    time.sleep(2)
     GPIO.output(7, True)
     GPIO.output(31, False)
 
