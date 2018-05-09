@@ -34,7 +34,7 @@ def open_trial_message(hashed_uid):
         bot.sendMessage(vip_chat_id,
                         "Alguien con hash terminado en "
                         + str(hashed_uid)[-8:]
-                        + "ha intentado abrir el local.")
+                        + " ha intentado abrir el local.")
     except:
         print("ERROR Al mandar el mensaje\nDetalles: " + traceback.format_exc())
         return False
