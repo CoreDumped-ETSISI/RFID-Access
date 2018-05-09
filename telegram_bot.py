@@ -15,7 +15,7 @@ bot = telepot.Bot(token["Telegram"])
 
 def user_opened_message(name):
     try:
-        bot.sendMessage(vip_chat_id, name + " ha habierto el local.")
+        bot.sendMessage(vip_chat_id, name + " ha abierto el local.")
     except:
         print("ERROR Al mandar el mensaje\nDetalles: " + traceback.format_exc())
         return False
