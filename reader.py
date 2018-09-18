@@ -1,11 +1,14 @@
 #!/usr/bin/env python
-import RPi.GPIO as GPIO
-import MFRC522
+import hashlib
 import signal
 import time
-from user_manager import get_user_dictionary
-import hashlib
+
+import RPi.GPIO as GPIO
+
+import MFRC522
+import telegram_bot as bot
 from log_manager import new_log_entry
+from user_manager import get_user_dictionary
 
 reset_reader_sentinel = True
 continue_reading = True
@@ -35,13 +38,11 @@ def end_read(signal, frame):
 
 
 def led_denial_blink():
-    GPIO.output(31, True)
-    time.sleep(0.3)
-    GPIO.output(31, False)
-    time.sleep(0.2)
-    GPIO.output(31, True)
-    time.sleep(0.3)
-    GPIO.output(31, False)
+    for _ in (0, 3):
+        GPIO.output(31, True)
+        time.sleep(0.1)
+        GPIO.output(31, False)
+        time.sleep(0.1)
 
 
 # When this has been called max_denies times in max_time secs, calls BLOCK()
@@ -83,7 +84,7 @@ def open_door():
     print("OPEN ...")
     GPIO.output(31, True)
     GPIO.output(7, False)
-    time.sleep(4)
+    time.sleep(2)
     GPIO.output(7, True)
     GPIO.output(31, False)
 
@@ -123,8 +124,11 @@ while reset_reader_sentinel:
             if is_user_authorized(hashed_uid):  # Usuario autorizado
                 open_door()
                 new_log_entry(hashed_uid, users_data[hashed_uid]["name"], "Acceso autorizado, puerta abierta")
+                bot.user_opened_message(users_data[hashed_uid]["name"])
             elif is_user_denied(hashed_uid):  # Usuario vetado
                 new_log_entry(hashed_uid, users_data[hashed_uid]["name"], "Usuario vetado, puerta cerrada")
+                bot.user_banned_message(users_data[hashed_uid]["name"])
             else:
                 new_log_entry(hashed_uid, "Desconocido", "Acceso no autorizado, usuario desconocido")
+                bot.open_trial_message(hashed_uid)
                 brute_force_avoid()
