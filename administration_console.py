@@ -1,97 +1,85 @@
-import RPi.GPIO as GPIO
-import MFRC522
-import signal
-import hashlib
-import user_manager as users
-from user_manager import get_user_dictionary
+#! python3
+import logging
+from hashlib import sha256
+from RPi.GPIO import cleanup as GPIO_cleanup
+from MFRC522 import MFRC522
+from user_manager import add_entry, get_dict
+from signal import signal, SIGINT
+
+logger = logging.getLogger("AdminConsole")
+logger.setLevel(logging.DEBUG)
+
+USERS_PRESET = """
+%s -> %s
+     - Email: %s
+     - Phone: %s
+     - Telegram user: %s
+     - Status: %s
+"""
 
 
-# Capture SIGINT for cleanup when the script is aborted
-def end_read(signal, frame):
-    global continue_reading
-    print("Ctrl+C captured, ending read.")
-    continue_reading = False
-    GPIO.cleanup()
+class Instance():
+    def __init__(self):
+        self.userDict = get_dict()
+        self.exit = False
 
+    def end_read(self, *arg):
+        """Capture SIGINT for cleanup when the script is aborted"""
+        logger.warn("Ctrl-C captured. Ending read.")
+        self.exit = True
 
-# This returns hashed str
-def hasher(string):
-    return hashlib.sha256(string).hexdigest()
+    def new_user(self):
+        signal(SIGINT, self.end_read)
+        reader = MFRC522()
+        reader_request = reader.MFRC522_Request
+        reader_get_uid = reader.MFRC522_Anticoll
+        readerType = reader.PICC_REQIDL
+        readerOk = reader.MI_OK
+        logger.info("Introduce your tag\nPress Ctrl-C to stop")
+        while not self.exit:
+            status, _ = reader_request(readerType)
+            if status != readerOk:
+                continue
+            logger.info("Card detected")
+            status, uid = reader_get_uid()
+            if status != readerOk:
+                continue
+            logger.info("The card contains a UID")
+            hashedUid = sha256("".join(map(str, uid))).hexdigest()
+            if hashedUid not in self.userDict:
+                name = input("Name: ")
+                email = input("Email: ")
+                phone = input("Phone: ")
+                telegramName = input("Telegram nick: ")
+                add_entry(hashedUid, "AUTORIZADO", name, email,
+                          phone, telegramName)
+                self.userDict = get_dict()
+            else:
+                logger.warn("Tag already exists")
+            self.exit = True
+            GPIO_cleanup()
 
-
-continue_reading = True
-users_dictionary = get_user_dictionary()
-
-
-# in this action the RFID reader waits for a card, which if don't exist in the database, will be added on it
-def new_user():
-    global continue_reading
-    global users_dictionary
-    # Hook the SIGINT
-    signal.signal(signal.SIGINT, end_read)
-    # Create an object of the class MFRC522
-    MIFAREReader = MFRC522.MFRC522()
-    # Welcome message
-    print("Introduce tu tag")
-    print("Press Ctrl-C to stop.")
-    # This loop keeps checking for chips. If one is near it will get the UID
-    continue_reading = True
-    while continue_reading:
-        # Scan for cards
-        (status, TagType) = MIFAREReader.MFRC522_Request(MIFAREReader.PICC_REQIDL)
-        # If a card is found
-        if status == MIFAREReader.MI_OK:
-            print("Card detected")
-            # Get the UID of the card
-            (status, uid) = MIFAREReader.MFRC522_Anticoll()
-            # If we have the UID, continue
-            if status == MIFAREReader.MI_OK:
-                hash_uid = hasher(''.join(str(e) for e in uid))
-                if not (hash_uid in users_dictionary):
-                    name = raw_input("Name: ")
-                    email = raw_input("Email: ")
-                    phone = raw_input("Phone: ")
-                    telegram_name = raw_input("Telegram nick: ")
-                    users.new_user_entry(hash_uid, "AUTORIZADO", name, email, phone, telegram_name)
-                    users_dictionary = get_user_dictionary()
-                else:
-                    print("Tag already exists")
-                continue_reading = False
-                GPIO.cleanup()
-
-
-# this action prints a list of all the users
-def show_users():
-    global users_dictionary
-    for key, dt in users_dictionary.items():
-        print(key + " -> " + dt["name"])
-        print("     - Email: " + dt["email"])
-        print("     - Phone: " + dt["phone"])
-        print("     - Telegram user: " + dt["telegram_user"])
-        print("     - Status: " + dt["status"] + "\n")
-
-
-def default():
-    print("\nPlease choose a correct option\n")
-    pass
+    def show_users(self):
+        for key, dt in self.userDict.items():
+            logger.info(USERS_PRESET % (key, dt["name"], dt["email"],
+                                        dt["phone"], dt["telegramUser"],
+                                        dt["status"]))
 
 
 def main():
-    sentinel = True
-    d_actions = {
-        1: new_user,
-        2: show_users
-    }
-    actions_list = ["New user", "Show users"]
-    while sentinel:
-        for x in list(d_actions):
-            print(x, actions_list[x - 1])
-        print(0, "Exit")
-        sec = int(input("Select: "))
-        if sec != 0:
-            d_actions.get(sec, default)()
+    obj = Instance()
+    actions = [("Exit", 0), ("New user", obj.new_user),
+               ("Show users", obj.show_users)]
+    while True:
+        for a, i in enumerate(actions):
+            logger.info("%d: %s" % (a, i))
+        selection = int(input("Select: "))
+        if selection == 0:
+            break
+        elif 0 < selection < 3:
+            actions[selection][1]()
         else:
-            sentinel = False
+            logger.warn("Wrong option! (%d)" % selection)
 
 
 if __name__ == "__main__":
