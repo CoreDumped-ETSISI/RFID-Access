@@ -106,3 +106,4 @@ credentials.json
 
 *.pdf
 .idea/*
+/credenciales.txt
