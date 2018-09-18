@@ -2,7 +2,7 @@
 import logging
 from hashlib import sha256
 from RPi.GPIO import cleanup as GPIO_cleanup
-from MFRC522 import MFRC522
+from modules.MFRC522 import MFRC522
 from user_manager import add_entry, get_dict
 from signal import signal, SIGINT
 

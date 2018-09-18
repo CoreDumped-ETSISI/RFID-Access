@@ -50,7 +50,7 @@ def insert_user(hashedUid, status, name, email, phone, telegramName):
         ).execute()
         return True
     except Exception as e:
-        logging.exception("Error al insertar usuario\n" + str(e))
+        logger.exception("Error al insertar usuario\n" + str(e))
 
 
 def get_users():
@@ -91,9 +91,9 @@ def save_log():
             ).execute()
         remove("log.json")
     except FileNotFoundError as e:
-        logging.exception("Ninguna actividad que guardar\n" + str(e))
+        logger.exception("Ninguna actividad que guardar\n" + str(e))
     except Exception as e:
-        logging.exception("Error al actualizar el log online\n" + str(e))
+        logger.exception("Error al actualizar el log online\n" + str(e))
 
 
 if __name__ == "__main__" and "--update_log" in argv:
