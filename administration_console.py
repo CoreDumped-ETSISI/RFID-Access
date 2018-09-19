@@ -35,16 +35,16 @@ class Instance():
         reader_get_uid = reader.MFRC522_Anticoll
         readerType = reader.PICC_REQIDL
         readerOk = reader.MI_OK
-        logger.info("Introduce your tag\nPress Ctrl-C to stop")
+        logger.warn("Introduce your tag\nPress Ctrl-C to stop")
         while not self.exit:
             status, _ = reader_request(readerType)
             if status != readerOk:
                 continue
-            logger.info("Card detected")
+            logger.warn("Card detected")
             status, uid = reader_get_uid()
             if status != readerOk:
                 continue
-            logger.info("The card contains a UID")
+            logger.warn("The card contains a UID")
             hashedUid = sha256("".join(map(str, uid))).hexdigest()
             if hashedUid not in self.userDict:
                 name = input("Name: ")
@@ -61,7 +61,7 @@ class Instance():
 
     def show_users(self):
         for key, dt in self.userDict.items():
-            logger.info(USERS_PRESET % (key, dt["name"], dt["email"],
+            logger.warn(USERS_PRESET % (key, dt["name"], dt["email"],
                                         dt["phone"], dt["telegramUser"],
                                         dt["status"]))
 
@@ -72,7 +72,7 @@ def main():
                ("Show users", obj.show_users)]
     while True:
         for a, i in enumerate(actions):
-            logger.info("%d: %s" % (a, i))
+            logger.warn("%d: %s" % (a, i))
         selection = int(input("Select: "))
         if selection == 0:
             break

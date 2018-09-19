@@ -36,19 +36,19 @@ class Instance():
         reader_get_uid = reader.MFRC522_Anticoll
         readerType = reader.PICC_REQIDL
         readerOk = reader.MI_OK
-        logger.info("Reader activated")
+        logger.warn("Reader activated")
         GPIO_output(7, True)  # Close the door
         while not self.exit:
             status, _ = reader_request(readerType)
             if status != readerOk:
                 continue
-            logger.info("Card detected")
+            logger.warn("Card detected")
             status, uid = reader_get_uid()
             if status != readerOk:
                 continue
-            logger.info("The card contains a UID")
+            logger.warn("The card contains a UID")
             hashedUid = sha256("".join(map(str, uid)).encode()).hexdigest()
-            logger.info(hashedUid)
+            logger.warn(hashedUid)
             try:
                 value = self.userDict[hashedUid]
                 if value["status"] == "AUTORIZADO":
