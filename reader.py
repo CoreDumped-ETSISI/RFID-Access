@@ -1,4 +1,4 @@
-#! python3
+#!usr/bin/env python3
 import logging
 from hashlib import sha256
 from RPi.GPIO import output as GPIO_output
