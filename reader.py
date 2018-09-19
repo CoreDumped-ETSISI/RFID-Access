@@ -13,6 +13,12 @@ logger = logging.getLogger("Reader")
 logger.setLevel(logging.DEBUG)
 
 
+def beep(seconds):  # Freezes the program!
+    GPIO_output(31, True)
+    sleep(seconds)
+    GPIO_output(31, False)
+
+
 class Instance():
     def __init__(self):
         self.userDict = get_dict()
@@ -60,9 +66,15 @@ class Instance():
                     bot.user_banned_message(value["name"])
                 add_entry(hashedUid, value["name"], action)
             except KeyError:
+                beep(.5)
+                sleep(.5)
+                beep(.5)
                 bot.open_trial_message(hashedUid)
                 add_entry(hashedUid, "Desconocido",
                           "Acceso no autorizado. Usuario desconocido")
+                add_entry(hashedUid, "Desconocido", "Actualizando diccionario")
+                self.userDict = get_dict()
+                beep(.5)
             sleep(2)
 
 
