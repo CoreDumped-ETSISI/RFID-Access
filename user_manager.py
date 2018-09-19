@@ -1,6 +1,5 @@
 #! python3
 import logging
-from google_api import insert_user
 from google_api import get_users
 from json import load, dump
 
