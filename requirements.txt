@@ -1,0 +1,6 @@
+RPi.GPIO = "*"
+python-telegram-bot = "*"
+google-api-python-client = "*"
+oauth2client = "*"
+apiclient = "*"
+httplib2 = "*"
