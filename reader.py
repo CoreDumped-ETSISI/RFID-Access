@@ -8,6 +8,7 @@ from log_manager import add_entry
 from signal import signal, SIGINT
 from time import sleep
 import telegram_bot as bot
+from threading import Thread
 
 logger = logging.getLogger("Reader")
 logger.setLevel(logging.DEBUG)
@@ -19,6 +20,10 @@ def beep(seconds):  # Freezes the program!
     GPIO_output(31, False)
 
 
+def async_call(funcion, arg=[]):
+    Thread(target=funcion, args=arg, daemon=True).start()
+
+
 class Instance():
     def __init__(self):
         self.userDict = get_dict()
@@ -28,6 +33,9 @@ class Instance():
         """Capture SIGINT for cleanup when the script is aborted"""
         logger.warn("Ctrl-C captured. Ending read.")
         self.exit = True
+
+    def update_dict(self):
+        self.userDict = get_dict()
 
     def loop(self):
         signal(SIGINT, self.end_read)
@@ -59,20 +67,21 @@ class Instance():
                     GPIO_output(7, True)
                     GPIO_output(31, False)
                     action = "Acceso autorizado. Puerta abierta"
-                    bot.user_opened_message(value["name"])
+                    async_call(bot.user_opened_message, [value["name"]])
                 else:
                     action = "Usuario vetado. Puerta cerrada"
-                    bot.user_banned_message(value["name"])
+                    async_call(bot.user_banned_message, [value["name"]])
                 add_entry(hashedUid, value["name"], action)
             except KeyError:
                 beep(.5)
                 sleep(.5)
                 beep(.5)
+                async_call(bot.open_trial_message, [hashedUid])
                 bot.open_trial_message(hashedUid)
                 add_entry(hashedUid, "Desconocido",
                           "Acceso no autorizado. Usuario desconocido")
                 add_entry(hashedUid, "Desconocido", "Actualizando diccionario")
-                self.userDict = get_dict()
+                async_call(self.update_dict)
                 logger.warn("Updated users dict")
                 beep(.5)
             sleep(2)
