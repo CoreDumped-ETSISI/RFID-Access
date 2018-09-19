@@ -76,7 +76,8 @@ class Instance():
                 logger.warn("Updated users dict")
                 beep(.5)
             sleep(2)
-        reader = MFRC522()
+            reader = MFRC522()
+            beep(.2)
 
 
 if __name__ == "__main__":
