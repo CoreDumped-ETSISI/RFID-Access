@@ -39,7 +39,6 @@ class Instance():
         logger.info("Reader activated")
         GPIO_output(7, True)  # Close the door
         while not self.exit:
-            # TODO: Might need to reload the reader after each use
             status, _ = reader_request(readerType)
             if status != readerOk:
                 continue
@@ -74,8 +73,10 @@ class Instance():
                           "Acceso no autorizado. Usuario desconocido")
                 add_entry(hashedUid, "Desconocido", "Actualizando diccionario")
                 self.userDict = get_dict()
+                logger.warn("Updated users dict")
                 beep(.5)
             sleep(2)
+        reader = MFRC522()
 
 
 if __name__ == "__main__":
