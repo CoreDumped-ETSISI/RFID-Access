@@ -8,31 +8,23 @@ logger = logging.getLogger("Users")
 logger.setLevel(logging.DEBUG)
 
 
-def add_entry(hashedUid, status, name, email, phone, telegramName):
+def get_dict():
+    # First load local
     try:
         with open("users.json") as f:
-            userData = load(f)
+            local = load(f)
     except FileNotFoundError:
         logger.warn("Users was not found. Empty dict")
-        userData = {}
-    insert_user(hashedUid, status, name, email, phone, telegramName)
-    userData[hashedUid] = {"status": status, "name": name, "email": email,
-                           "phone": phone, "telegramName": telegramName}
-    with open("users.json", "w") as f:
-        dump(userData, f)
-
-
-def get_dict():
+        local = {}
+    # Try to fetch google spreadsheet
     try:
-        userData = get_users()
-    except Exception:
-        logger.warn("Google users unavailable. Local file")
-        try:
-            with open("users.json") as f:
-                userData = load(f)
-        except FileNotFoundError:
-            logger.warn("Users was not found. Empty dict")
-            userData = {}
-    with open("users.json", "w") as f:
-        dump(userData, f)
-    return userData
+        google = get_users()
+    except Exception as e:
+        logger.exception("Google users unavailable. Local file\n" + str(e))
+        return local
+    else:
+        if local != google:
+            logger.warn("Rewriting users.json")
+            with open("users.json", "w") as f:
+                dump(google, f)
+        return google
