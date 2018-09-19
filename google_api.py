@@ -5,12 +5,6 @@ from apiclient.discovery import build
 from httplib2 import Http
 from time import time
 
-"""
-insert_user(hashedUid, status, name, email, phone, telegramName)
-get_users()
-save_log()
-"""
-
 logger = logging.getLogger("GoogleAPI")
 logger.setLevel(logging.DEBUG)
 
