@@ -15,5 +15,5 @@ def add_entry(hashedUid, username, action):
     timestamp = strftime("%d/%m/%Y %H:%M:%S")
     dataLog[timestamp] = {"hashedUid": hashedUid, "username": username,
                           "action": action}
-    with open("log.json") as f:
+    with open("log.json", "w") as f:
         dump(dataLog, f)

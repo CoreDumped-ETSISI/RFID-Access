@@ -38,7 +38,7 @@ class Instance():
         readerOk = reader.MI_OK
         logger.info("Reader activated")
         GPIO_output(7, True)  # Close the door
-        while not self.exit():
+        while not self.exit:
             # TODO: Might need to reload the reader after each use
             status, _ = reader_request(readerType)
             if status != readerOk:
@@ -48,7 +48,7 @@ class Instance():
             if status != readerOk:
                 continue
             logger.info("The card contains a UID")
-            hashedUid = sha256("".join(map(str, uid))).hexdigest()
+            hashedUid = sha256("".join(map(str, uid)).encode()).hexdigest()
             logger.info(hashedUid)
             try:
                 value = self.userDict[hashedUid]

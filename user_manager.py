@@ -5,8 +5,11 @@ from json import load, dump
 
 
 def add_entry(hashedUid, status, name, email, phone, telegramName):
-    with open("users.json") as f:
-        userData = load(f)
+    try:
+        with open("users.json") as f:
+            userData = load(f)
+    except FileNotFoundError:
+        userData = {}
     insert_user(hashedUid, status, name, email, phone, telegramName)
     userData[hashedUid] = {"status": status, "name": name, "email": email,
                            "phone": phone, "telegramName": telegramName}
@@ -18,6 +21,9 @@ def get_dict():
     try:
         userData = get_users()
     except Exception:
-        with open("users.json") as f:
-            userData = load(f)
+        try:
+            with open("users.json") as f:
+                userData = load(f)
+        except FileNotFoundError:
+            userData = {}
     return userData
