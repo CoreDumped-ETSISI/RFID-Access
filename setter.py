@@ -1,14 +1,21 @@
 #! python3
 import logging
 from telegram import Bot
+from time import strftime
 
-logger = logging.getLogger("TelegramBot")
+logger = logging.getLogger("Setter")
 logger.setLevel(logging.DEBUG)
 
 VIP_CHAT_ID = -1001104852034
 with open("credenciales.txt") as f:
     TOKEN = f.readline()
 BOT = Bot(TOKEN)
+
+
+def add_entry(hashedUid, username, action):
+    timestamp = strftime("%d/%m/%Y %H:%M:%S")
+    with open("log.txt", "a") as f:
+        f.write(";".join((timestamp, hashedUid, username, action)) + "\n")
 
 
 def user_opened_message(name):
